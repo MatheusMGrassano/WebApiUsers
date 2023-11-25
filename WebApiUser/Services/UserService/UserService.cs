@@ -2,6 +2,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Net;
+using System.Security.Cryptography;
+using System.Threading.Tasks.Dataflow;
 using WebApiUser.Data;
 using WebApiUser.Models;
 using WebApiUser.Models.Requests;
@@ -13,6 +15,11 @@ namespace WebApiUser.Services.UserService
     public class UserService : IUserService
     {
         private readonly AppDbContext _context;
+
+        private const int salt_size = 16;
+        private const int hash_size = 32;
+        private const int iterations = 10000;
+        private static HashAlgorithmName hashAlgorithmName = HashAlgorithmName.SHA256;
 
         public UserService(AppDbContext context)
         {
@@ -43,7 +50,7 @@ namespace WebApiUser.Services.UserService
 
             try
             {
-                var user = FindUserAsync(id).Result;
+                var user = await FindUserAsync(id);
 
                 response.Data = CreateUserResponse(user);
                 response.Message = "Usuário encontrado!";
@@ -94,13 +101,13 @@ namespace WebApiUser.Services.UserService
                 {
                     Name = request.Name,
                     Email = request.Email,
-                    Password = request.Password,
+                    Password = HashPassword(request.Password)
                 };
 
                 await _context.AddAsync(user);
                 await _context.SaveChangesAsync();
 
-                var findUser = FindUserAsync(user.Id).Result;
+                var findUser = await FindUserAsync(user.Id);
 
                 response.Data = CreateUserResponse(findUser);
                 response.Message = "Usuário cadastrado com sucesso!";
@@ -126,7 +133,7 @@ namespace WebApiUser.Services.UserService
                 if (!error.IsNullOrEmpty())
                     throw new Exception(error);
 
-                var user = FindUserAsync(request.Id).Result;
+                var user = await FindUserAsync(request.Id);
 
                 user.Name = request.Name;
                 _context.Update(user);
@@ -153,8 +160,8 @@ namespace WebApiUser.Services.UserService
 
                 if (!error.IsNullOrEmpty())
                     throw new Exception(error);
-
-                var user = FindUserAsync(request.Id).Result;
+                    
+                var user = await FindUserAsync(request.Id);
 
                 user.Email = request.Email;
                 _context.Update(user);
@@ -182,9 +189,9 @@ namespace WebApiUser.Services.UserService
                 if (!error.IsNullOrEmpty())
                     throw new Exception(error);
 
-                var user = FindUserAsync(request.Id).Result;
+                var user = await FindUserAsync(request.Id);
 
-                user.Password = request.Password;
+                user.Password = HashPassword(request.Password);
                 _context.Update(user);
                 await _context.SaveChangesAsync();
 
@@ -207,7 +214,7 @@ namespace WebApiUser.Services.UserService
 
             try
             {
-                var user = FindUserAsync(id).Result;
+                var user = await FindUserAsync(id);
 
                 _context.Users.Remove(user);
                 await _context.SaveChangesAsync();
@@ -241,6 +248,25 @@ namespace WebApiUser.Services.UserService
         private async Task<User> FindUserAsync(int id)
         {
             return await _context.Users.FirstAsync(x => x.Id == id) ?? throw new Exception("Id de usuário não encontrado");
+        }
+
+        private string HashPassword(string password)
+        {
+            var salt = RandomNumberGenerator.GetBytes(salt_size);
+            var hash = Rfc2898DeriveBytes.Pbkdf2(password, salt, iterations, hashAlgorithmName, hash_size);
+            
+            return string.Join(";", Convert.ToBase64String(salt), Convert.ToBase64String(hash));
+        }
+
+        public static bool AuthPassword(string storedPassword, string inputPassword)
+        {
+            var elements = storedPassword.Split(";");
+            var salt = Convert.FromBase64String(elements[0]);
+            var hash = Convert.FromBase64String(elements[1]);
+            
+            var inputHash = Rfc2898DeriveBytes.Pbkdf2(inputPassword, salt, iterations, hashAlgorithmName, hash_size);
+
+            return CryptographicOperations.FixedTimeEquals(hash, inputHash);
         }
     }
 }
