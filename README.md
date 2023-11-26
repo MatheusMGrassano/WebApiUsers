@@ -10,7 +10,7 @@
 
 [Testing the application](#testing-the-application)
 
-[Libraries and techologies](#libraries-and-technologies)
+[Libraries and technologies](#libraries-and-technologies)
 
 
 ## Description
@@ -110,7 +110,7 @@ dotnet watch run
 
 Then, a new browser tab will open with the Swagger UI, showing all the features of the API.
 
-## Libraries and techologies
+## Libraries and technologies
 
 - [Entity Framework Core](https://www.nuget.org/packages/Microsoft.EntityFrameworkCore/)
 - [Entity Framework Core SQL Server](https://www.nuget.org/packages/Microsoft.EntityFrameworkCore.SqlServer)
