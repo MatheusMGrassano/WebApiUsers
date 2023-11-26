@@ -21,7 +21,7 @@ This repository contains a study project of a Web API using .NET 7  with the goa
 🇧🇷
 Este repositório contém um projeto de estudo da criação de uma API web em .NET 7 com o objetivo de implementar um CRUD completo (Create, Read, Update, Delete) de usuários, incluindo autenticação com JWT Bearer Authentication e armazenamento seguro de senhas.
 
-## Resources
+## Features
 
 | Method | Route                       | JSON Body                | Action                          |
 | ------ | --------------------------- | -------------------      | ------------------------------- |
