@@ -69,7 +69,7 @@ To run the application, you must have these tools installed:
 
 ## Testing the application
 
-Download or clone the project from: [https://github.com/MatheusMGrassano/ApiFilmes](https://github.com/MatheusMGrassano/WebApiUsers.git)
+Download or clone the project from: [https://github.com/MatheusMGrassano/WebApiUsers.git](https://github.com/MatheusMGrassano/WebApiUsers.git)
 
 ### Connection String
 
